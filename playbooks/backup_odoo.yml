@@ -11,6 +11,7 @@
         mode: '0755'
 
     - name: Backup Odoo database
-      shell: "PGPASSWORD={{ odoo_db_pass }} pg_dumpall -h localhost -U {{ odoo_db_user }} -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/postgres_backup_{{ ansible_date_time.date }}.sql"
+      shell: "PGPASSWORD={{ odoo_db_pass }} pg_dump -h localhost -U {{ odoo_db_user }} -d {{ odoo_db_name }} -F c -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ ansible_date_time.date }}.dump"
+
 
 
