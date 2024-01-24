@@ -12,7 +12,6 @@
 
     - name: Backup Odoo database
       shell: "PGPASSWORD={{ odoo_db_pass }} pg_dump -h localhost -U {{ odoo_db_user }} -d odoo_database -F c -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ ansible_date_time.date }}.dump"
-      become_user: postgres
 
 
 
