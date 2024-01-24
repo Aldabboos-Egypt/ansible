@@ -1,0 +1,21 @@
+# playbook.yml
+---
+- name: Backup Odoo
+  hosts: odoo_servers
+  become: yes
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Create backup directory on Odoo server
+      file:
+        path: "{{ odoo_backup_directory }}/{{ inventory_hostname }}"
+        state: directory
+        mode: '0755'
+
+    - name: Backup Odoo database
+      command: |
+        pg_dump -h localhost -U {{ odoo_db_user }} -d {{ odoo_db_name }} -Fc > "{{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ ansible_date_time.date }}.dump"
+      args:
+        executable: /bin/bash
+      become_user: postgres
+
