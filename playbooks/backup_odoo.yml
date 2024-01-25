@@ -1,4 +1,3 @@
-# playbook.yml
 ---
 - name: Backup Odoo
   hosts: odoo_servers
@@ -10,8 +9,9 @@
         state: directory
         mode: '0755'
 
+    - name: Get current date and time
+      set_fact:
+        current_datetime: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+
     - name: Backup Odoo database
-      shell: "PGPASSWORD={{ odoo_db_pass }} pg_dump -h localhost -U {{ odoo_db_user }} -d {{ odoo_db_name }} -F c -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ ansible_date_time.date }}.dump"
-
-
-
+      shell: "PGPASSWORD={{ odoo_db_pass }} pg_dump -h localhost -U {{ odoo_db_user }} -d {{ odoo_db_name }} -F c -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ current_datetime }}.dump"
