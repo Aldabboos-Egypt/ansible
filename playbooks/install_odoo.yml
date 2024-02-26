@@ -63,3 +63,9 @@
         system: yes
         shell: /bin/bash
       when: ansible_distribution in ["Debian","Ubuntu"]
+
+    - name: Log in as odoo user and Installing pyenv
+      become: true
+      become_user: odoo
+      shell: >
+        curl https://pyenv.run | bash
