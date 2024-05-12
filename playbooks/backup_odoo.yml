@@ -15,9 +15,5 @@
 
     - name: Backup Odoo database
       shell: "PGPASSWORD={{ odoo_db_pass }} pg_dump -h localhost -U {{ odoo_db_user }} -d {{ odoo_db_name }} -F c -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ odoo_db_name }}_{{ current_datetime }}.dump"
-    - name: Delete old backups older than a month
-      find:
-        paths: "{{ odoo_backup_directory }}/{{ inventory_hostname }}"
-        patterns: "odoo_backup_{{ odoo_db_name }}_*"
-        age: "{{ 30 * 24 * 3600 }}"  # 30 days in seconds
-        state: absent
+    - name: Delete old backup files
+      command: "find {{ odoo_backup_directory }}/{{ inventory_hostname }} -type f -mtime +30 -delete"
