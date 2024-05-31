@@ -20,7 +20,7 @@
         https://{{ odoo_database }}/web/database/backup
       register: curl_result
       failed_when: curl_result.rc != 0 or "End-of-central-directory signature not found" in curl_result.stderr
-      changed_when: curl_result.stdout_size > 0
+      changed_when: curl_result.stdout != ""
 
     - name: Verify the backup file
       command: "unzip -t {{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
