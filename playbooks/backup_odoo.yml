@@ -10,20 +10,17 @@
         path: "{{ backup_dir }}"
         state: directory
 
-    - name: Create Odoo database backup
-      uri:
-        url: "https://{{ odoo_domain }}/web/database/backup"
-        method: POST
-        return_content: yes
-        body_format: form-urlencoded
-        body:
-          master_pwd: "{{ admin_password }}"
-          name: "{{ odoo_database }}"
-          backup_format: zip
-      register: backup_response
-      until: backup_response.status == 200
-      retries: 3
-      delay: 10
+    - name: Create Odoo database backup using curl
+      command: >
+        curl -X POST
+        -F "master_pwd={{ admin_password }}"
+        -F "name={{ odoo_database }}"
+        -F "backup_format=zip"
+        -o "{{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
+        https://{{ odoo_domain }}/web/database/backup
+      register: curl_result
+      failed_when: curl_result.rc != 0 or "End-of-central-directory signature not found" in curl_result.stderr
+      warn: false
 
     - name: Save the backup file
       copy:
