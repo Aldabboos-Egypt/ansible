@@ -23,7 +23,7 @@
       register: backup_response
       until: backup_response.status == 200
       retries: 3
-      delay: 6000
+      delay: 10
 
     - name: Save the backup file
       copy:
