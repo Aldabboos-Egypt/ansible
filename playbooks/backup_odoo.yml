@@ -1,6 +1,6 @@
 ---
 - name: Backup Odoo databases on multiple servers
-  hosts: all
+  # hosts: all
   vars:
     backup_dir: /root/odoo_backups
 
