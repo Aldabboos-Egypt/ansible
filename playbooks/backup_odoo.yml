@@ -1,5 +1,5 @@
 ---
-- name: Backup Odoo databases on multiple servers
+- name: Backup Odoo 
   hosts: all
   vars:
     backup_dir: /root/odoo_backups
@@ -10,30 +10,22 @@
         path: "{{ backup_dir }}"
         state: directory
 
-    - name: Create Odoo database backup using curl
-      command: >
-        curl -X POST
-        -F "master_pwd={{ admin_password }}"
-        -F "name={{ odoo_database }}"
-        -F "backup_format=zip"
-        -o "{{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
-        https://{{ odoo_database }}/web/database/backup
-      register: curl_result
-      failed_when: curl_result.rc != 0 or "End-of-central-directory signature not found" in curl_result.stderr
-      changed_when: curl_result.stdout != ""
+    - name: Create Odoo database backup
+      uri:
+        url: "https://{{ odoo_domain }}/web/database/backup"
+        method: POST
+        return_content: yes
+        body_format: form-multipart
+        body:
+          master_pwd: "{{ admin_password }}"
+          name: "{{ odoo_database }}"
+          backup_format: zip
+      register: backup_response
 
-    - name: Verify the backup file
-      command: "unzip -t {{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
-      register: unzip_result
-      ignore_errors: yes
-      changed_when: false
-      failed_when: unzip_result.rc != 0 or unzip_result.stdout.find('No errors detected') == -1
-
-    - name: Remove invalid backup file
-      file:
-        path: "{{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
-        state: absent
-      when: unzip_result.rc != 0
+    - name: Save the backup file
+      copy:
+        content: "{{ backup_response.content }}"
+        dest: "{{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
 
     - name: Delete old backups
       find:
