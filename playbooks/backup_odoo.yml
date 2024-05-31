@@ -15,7 +15,7 @@
         url: "https://{{ odoo_database }}/web/database/backup"
         method: POST
         return_content: yes
-        body_format: form-multipart
+        body_format: form-urlencoded
         body:
           master_pwd: "{{ admin_password }}"
           name: "{{ odoo_database }}"
