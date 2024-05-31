@@ -21,6 +21,9 @@
           name: "{{ odoo_database }}"
           backup_format: zip
       register: backup_response
+      until: backup_response.status == 200
+      retries: 3
+      delay: 6000
 
     - name: Save the backup file
       copy:
