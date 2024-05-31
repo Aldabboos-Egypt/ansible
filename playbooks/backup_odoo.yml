@@ -12,7 +12,7 @@
 
     - name: Create Odoo database backup
       uri:
-        url: "https://{{ inventory_hostname }}/web/database/backup"
+        url: "https://{{ odoo_database }}/web/database/backup"
         method: POST
         return_content: yes
         body_format: form-multipart
