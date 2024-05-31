@@ -20,7 +20,6 @@
         https://{{ odoo_domain }}/web/database/backup
       register: curl_result
       failed_when: curl_result.rc != 0 or "End-of-central-directory signature not found" in curl_result.stderr
-      warn: false
 
     - name: Save the backup file
       copy:
