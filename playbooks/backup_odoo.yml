@@ -1,19 +1,43 @@
 ---
-- name: Backup Odoo
-  hosts: odoo_servers
-  become: yes
+- name: Backup Odoo databases on multiple servers
+  hosts: all
+  vars:
+    backup_dir: /root/odoo_backups
+
   tasks:
-    - name: Create backup directory on Odoo server
+    - name: Create backup directory
       file:
-        path: "{{ odoo_backup_directory }}/{{ inventory_hostname }}"
+        path: "{{ backup_dir }}"
         state: directory
-        mode: '0755'
 
-    - name: Get current date and time
-      set_fact:
-        current_datetime: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+    - name: Create Odoo database backup
+      uri:
+        url: "https://{{ inventory_hostname }}/web/database/backup"
+        method: POST
+        return_content: yes
+        body_format: form-multipart
+        body:
+          master_pwd: "{{ admin_password }}"
+          name: "{{ odoo_database }}"
+          backup_format: zip
+      register: backup_response
 
-    - name: Backup Odoo database
-      shell: "PGPASSWORD={{ odoo_db_pass }} pg_dump -h localhost -U {{ odoo_db_user }} -d {{ odoo_db_name }} -F c -f {{ odoo_backup_directory }}/{{ inventory_hostname }}/odoo_backup_{{ odoo_db_name }}_{{ current_datetime }}.dump"
-    - name: Delete old backup files
-      command: "find {{ odoo_backup_directory }}/{{ inventory_hostname }} -type f -mtime +1 -delete"
+    - name: Save the backup file
+      copy:
+        content: "{{ backup_response.content }}"
+        dest: "{{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
+
+    - name: Delete old backups
+      find:
+        paths: "{{ backup_dir }}"
+        patterns: "{{ odoo_database }}_*.zip"
+        age: 7d
+        recurse: yes
+      register: old_backups
+
+    - name: Remove old backups
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_backups.files }}"
+      when: old_backups.matched > 0
