@@ -22,10 +22,20 @@
           backup_format: zip
       register: backup_response
 
-    - name: Save the backup file
+    - name: Save the backup response to a temporary file
       copy:
         content: "{{ backup_response.content }}"
+        dest: "/tmp/{{ odoo_database }}.tmp"
+
+    - name: Download the actual backup file
+      get_url:
+        url: "https://{{ odoo_database }}/web/database/backup"
         dest: "{{ backup_dir }}/{{ odoo_database }}_{{ lookup('pipe', 'date +%F_%H-%M-%S') }}.zip"
+        method: POST
+        headers:
+          Content-Type: application/x-www-form-urlencoded
+        body: "master_pwd={{ admin_password }}&name={{ odoo_database }}&backup_format=zip"
+        force: yes
 
     - name: Delete old backups
       find:
